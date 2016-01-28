@@ -1,4 +1,6 @@
 require 'papaparse'
+sleep = require 'sleep'
+https = require 'https'
 
 column_name_map =
     perform_tasks        : "He/she performs the required tasks of the assigned role excellently."
@@ -9,19 +11,35 @@ column_name_map =
     seeks_feedback       : "He/she proactively seeks out feedback and acts on constructive feedback to grow and learn."
     lives_culture        : "He/she lives the culture of Bully and contributes to making the company great."
     is_helping_others    : "He/she is helping others grow and learn"
-    build_needed_systems : "He/she is helping to build the needed systems, processes and structure for the company to be able to grow successfully	Comments"
+    build_needed_systems : "He/she is helping to build the needed systems, processes and structure for the company to be able to grow successfully"
 
 class DataReader
-    load_from_url: (url) ->
+    read_data_from: (url, callback) ->
         console.log "Load data from #{url}"
+
+        https.get url, (res) ->
+            data = ""
+            console.log "Got response #{res.statusCode}"
+
+            res.on "data", (chunk) ->
+                data += chunk
+
+            res.on "end", () ->
+                callback(data)
+
+
+    load_from_url: (url, callback) ->
+        this.read_data_from(url, (data) ->
+            callback? data
+        )
+
 
 class Response
     constructor: (@name, data) ->
-        
-
 
 
 module.exports =
-    read_data : (url) ->
+    load_data : (url, callback) ->
        reader = new DataReader()
-       reader.load_from_url url
+       reader.load_from_url(url, callback)
+

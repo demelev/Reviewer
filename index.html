@@ -2,56 +2,19 @@
 <html>
     <head/>  
     <body>
-        <form id="load_url" action="">
-            <input type="text" name="url" id="f" value="" placeholder="Url to google sheets page" />
-            <button class="button-link">Load data</button>
+        <form id="load_url" action="load_from" method="post">
+            <input type="text" name="url" id="url_field" value="" placeholder="Url to google sheets page" />
+            <input type="submit" value="Load data" class="button-link"/>
         </form>
     </body>
 
-    <script type="text/javascript" charset="utf-8">
-        $("#addform").submit(function(){
-
-            reset_visual();
-
-            var fam = ffield.val().trim();
-
-            var names = nfield.val().split("\n").filter(Boolean);
-
-            // remove dupes 
-            names = names.sort().filter(function(item, pos, ary) {
-                return !pos || item != ary[pos - 1];
-            });
-
-            // remove whitespaces
-            names = names.filter(function(str) {
-                return /\S/.test(str);
-            });
-
-            if (fam && /\S/.test(fam)  ) {
-
-                if (names && names.length != 0) {
-
-                    console.log("Adding names: " + JSON.stringify(names));
-
-                    socket.emit('add-family', { 
-                        "family" : fam, 
-                        "names" : names
-                    });
-
-                    ffield[0].value = "";
-                    nfield[0].value = "";
-
-
-                } else {
-                    $('#n').css('background-color', 'red');
-                }
-
-            } else {
-                $('#f').css('background-color', 'red');
-            }
-
-
-            return false;
-        });
-    </script>
+    <!--
+       -<script type="text/javascript" charset="utf-8">
+       -    $("#addform").submit(function(){
+       -        var url = $("#url_field").val().trim();
+       -        alert(url)
+       -        return false;
+       -    });
+       -</script>
+       -->
 </html>

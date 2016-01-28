@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>  
+  <script type="text/javascript" src="/canvasjs-1.8.0/canvasjs.min.js"></script>
+  <script src="/jquery-2.1.4.js"></script>
+  <script src="/PapaParse-4.1.2/papaparse.min.js"></script>
+  <script src="resp.js"></script>
+
+</head>
+<body>
+  <div id="chartContainer" style="height: 300px; width: 100%;">
+      Hello hello
+  </div>
+
+  <script type="text/javascript">
+    var load_data = function(callback) {
+        $.get("/data.csv", function(data, status){
+            callback(data);
+        });
+    }
+
+  window.onload = function () {
+      load_responses(function(responses) {
+      });
+  }
+  </script>
+</body>
+</html>

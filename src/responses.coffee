@@ -1,0 +1,2 @@
+class Response
+    constructor: (@data) ->
