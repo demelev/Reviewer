@@ -1,3 +1,7 @@
+Papa = require 'papaparse'
+
+slice_marker = "Want to save and continue later? - click below"
+
 column_name_map = {
 
     timestamp: {
@@ -84,96 +88,79 @@ member_columns = {
 get_separators_indicies = (headers, separator) ->
     marker_positions = []
 
-    for(idx = 0; idx < headers.length; idx++)
-    {
-        if (headers[idx] == separator)
-        {
-            marker_positions.push(idx)
-        }
-    }
+    marker_positions = (idx for idx in headers when headers[idx] == separator)
+
+    #for idx = 0; idx < headers.length; idx++
+    #{
+        #if (headers[idx] == separator)
+        #{
+            #marker_positions.push(idx)
+        #}
+    #}
     marker_positions
 
-split_array = (array, split_indexes) -> {
+split_array = (array, split_indexes) ->
     slices = []
     begin = 0
 
-    for(sep_idx in split_indexes)
-    {
+    for sep_idx in split_indexes
         slices.push( array.slice(begin, split_indexes[sep_idx]) )
         begin = split_indexes[sep_idx] + 1
-    }
 
     slices
-}
 
-remove_redudant_columns = (data, indicies) -> {
-
+remove_redudant_columns = (data, indicies) ->
     console.log("Indicies length before: " + indicies.length)
 
     # remove indicies placed at odd positions in this array.
-    indicies = indicies.filter((item, index) -> {
-        return (index % 2 != 0)
-    })
+    indicies = indicies.filter (item, index) -> (index % 2 != 0)
 
-    console.log("Indicies length after: " + indicies.length)
+    console.log "Indicies length after: " + indicies.length
 
-    for( i = 0; i < data.data.length; i++) {
+    for _, i in data.data
+        data.data[i] = data.data[i].filter (item, index) ->
+            indicies.indexOf(index) == -1
 
-         d = data.data[i]
 
-        data.data[i] = d.filter((item, index) {
-            return indicies.indexOf(index) == -1
-        })
-    }
-}
-
- read_self_evaluation = (data) -> {
-     obj = {}
-     idx = 0
+read_self_evaluation = (data) ->
+    obj = {}
+    idx = 0
 
     # Read all the rest fields
-    for( prop in column_name_map) {
-
-         field = column_name_map[prop]
-
-        if (field.has_comment) {
+    for prop in column_name_map
+        field = column_name_map[prop]
+        if field.has_comment
             obj[prop] = {
                 score: data[idx++],
                 comment: data[idx++]
             }
-        }
         else
             obj[prop] = data[idx++]
-    }
+    obj
 
-    return obj
-}
 
-read_evaluation = (fields, data) -> {
-     obj = {}
-     idx = 0
+read_evaluation = (fields, data) ->
+    obj = {}
+    idx = 0
 
     # Read all the rest fields
-    for( prop in fields) {
+    for prop in fields
 
          field = fields[prop]
 
-        if (field.has_comment) {
+        if field.has_comment
             obj[prop] = {
                 score: data[idx++],
                 comment: data[idx++]
             }
-        }
         else
             obj[prop] = data[idx++]
-    }
-
     obj
-}
 
-parse_responses = (data) -> {
+parse_responses = (data) ->
     #global variable
     response_split_indicies = get_separators_indicies(data.data[0], slice_marker)
+    console.log "Separator indicies : " + response_split_indicies
     #Skip first 3 
     remove_redudant_columns(data, response_split_indicies.slice(1))
 
@@ -188,19 +175,20 @@ parse_responses = (data) -> {
 
     console.log(my_response[2])
     console.log(next_user)
-
     my_response
-}
+
 
 substitute_headers = (text) ->
     for item in column_name_map
         text = text.replace(new RegExp(column_name_map[item].text, 'g'), item)
     text
 
+
 read_responses = (text) ->
     text = substitute_headers(text)
     data = Papa.parse(text)
     parse_responses(data)
+
 
 parse_review = (members_data, review_data) ->
     read_responses(review_data)
@@ -208,4 +196,3 @@ parse_review = (members_data, review_data) ->
 
 module.exports =
     parse: parse_review
-

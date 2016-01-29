@@ -54,6 +54,19 @@ app.get('/members', function(req, res) {
     res.sendFile(__dirname + '/members.html');
 });
 
+var members_data = fs.readFileSync(__dirname + '/public/members.csv', 'utf8');
+var review_data = fs.readFileSync(__dirname + '/public/data.csv', 'utf8');
+review_parser.parse(members_data, review_data);
+/*
+ *fs.readFile(__dirname + '/public/members.csv', function(err, data){
+ *    var members_data = data;
+ *    fs.readFile(__dirname + '/public/data.csv', function(err, rdata) {
+ *        var review_data = rdata;
+ *        review_parser.parse(members_data, review_data);
+ *    });
+ *});
+ */
+
 http.listen(8888, function(){
     console.log('Listening on *:8888');
 });
