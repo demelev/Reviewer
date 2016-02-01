@@ -16,8 +16,11 @@ var fs = require('fs')
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bparser.urlencoded({ extended: false }))
 app.use(bparser.json());
+app.set("view engine", "jade");
 //app.use(cparser());
 app.use(session({secret:'dwsecretbackend'}));
+
+responses = {}
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/index.html');
@@ -54,18 +57,34 @@ app.get('/members', function(req, res) {
     res.sendFile(__dirname + '/members.html');
 });
 
+app.get('/members/*', function(req, res) {
+    if (Object.keys(responses).contains(req.params[0]))
+    {
+        var review = responses[req.params[0]];
+        var data = review_parser.get_chart_data(review);
+        //res.send(JSON.stringify(data['perform_tasks']));
+        res.render("member", {
+            review: review,
+            data: data,
+            statements: review_parser.statements()
+        });
+    }
+    else
+    {
+        res.send("There is not such member");
+    }
+    //var chart = new CanvasJS.Chart("chartContainer", get_chart_data());
+    //chart.render();
+});
+
+app.get('/chart', function(req, res) {
+    res.sendFile(__dirname + '/chart.html');
+});
+
 var members_data = fs.readFileSync(__dirname + '/public/members.csv', 'utf8');
 var review_data = fs.readFileSync(__dirname + '/public/data.csv', 'utf8');
-review_parser.parse(members_data, review_data);
-/*
- *fs.readFile(__dirname + '/public/members.csv', function(err, data){
- *    var members_data = data;
- *    fs.readFile(__dirname + '/public/data.csv', function(err, rdata) {
- *        var review_data = rdata;
- *        review_parser.parse(members_data, review_data);
- *    });
- *});
- */
+responses = review_parser.parse(members_data, review_data);
+//console.log(responses);
 
 http.listen(8888, function(){
     console.log('Listening on *:8888');

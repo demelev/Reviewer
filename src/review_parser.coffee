@@ -1,6 +1,8 @@
 Papa = require 'papaparse'
+Array::contains = (value) -> this.indexOf(value) != -1
 
 slice_marker = "Want to save and continue later? - click below"
+members = []
 
 column_name_map = {
 
@@ -85,38 +87,60 @@ member_columns = {
         has_comment: true },
 }
 
+
+interaction_freq = [
+    "Daily",
+    "Worked alongside each other on big project(s) or had regular interaction",
+    "Occasionally",
+    "On a few occasions and can give some feedback",
+    "Insufficient interactions / will not review",
+    "Self Evaluated"
+]
+
+Insufficient_inter_id = 4 # workaround
+get_interactions = ->
+    interaction_freq.filter (item) ->
+        item != interaction_freq[Insufficient_inter_id]
+
+get_statements = ->
+    Object.keys(column_name_map)[2..]
+
 get_separators_indicies = (headers, separator) ->
-    marker_positions = []
-
-    marker_positions = (idx for idx in headers when headers[idx] == separator)
-
-    #for idx = 0; idx < headers.length; idx++
-    #{
-        #if (headers[idx] == separator)
-        #{
-            #marker_positions.push(idx)
-        #}
-    #}
-    marker_positions
+    (idx for value, idx in headers when value == separator)
 
 split_array = (array, split_indexes) ->
     slices = []
     begin = 0
 
-    for sep_idx in split_indexes
-        slices.push( array.slice(begin, split_indexes[sep_idx]) )
-        begin = split_indexes[sep_idx] + 1
-
+    slices = for sep_idx in split_indexes
+        sl = array.slice begin, sep_idx
+        begin = sep_idx + 1
+        sl
     slices
 
+
+check_my_name = (name) ->
+    if members.contains name
+        name
+    else
+        name = name.split(' ').reverse().join(' ')
+        name if members.contains name
+
+
+swap_columns = (data, indicies) ->
+    for _, i in data.data
+        d = data.data[i]
+        for index in indicies
+            do(index) ->
+                a = d[index-1]
+                d[index-1] = d[index]
+                d[index] = a
+
+
+
 remove_redudant_columns = (data, indicies) ->
-    console.log("Indicies length before: " + indicies.length)
-
     # remove indicies placed at odd positions in this array.
-    indicies = indicies.filter (item, index) -> (index % 2 != 0)
-
-    console.log "Indicies length after: " + indicies.length
-
+    #indicies = indicies.filter (item, index) -> (index % 2 != 0)
     for _, i in data.data
         data.data[i] = data.data[i].filter (item, index) ->
             indicies.indexOf(index) == -1
@@ -127,15 +151,14 @@ read_self_evaluation = (data) ->
     idx = 0
 
     # Read all the rest fields
-    for prop in column_name_map
-        field = column_name_map[prop]
-        if field.has_comment
-            obj[prop] = {
+    for key, answer of column_name_map
+        if answer.has_comment
+            obj[key] = {
                 score: data[idx++],
                 comment: data[idx++]
             }
         else
-            obj[prop] = data[idx++]
+            obj[key] = data[idx++]
     obj
 
 
@@ -144,55 +167,178 @@ read_evaluation = (fields, data) ->
     idx = 0
 
     # Read all the rest fields
-    for prop in fields
-
-         field = fields[prop]
-
+    for key, field of fields
         if field.has_comment
-            obj[prop] = {
-                score: data[idx++],
+            obj[key] = {
+                score: Number(data[idx++]),
                 comment: data[idx++]
             }
         else
-            obj[prop] = data[idx++]
+            obj[key] = data[idx++]
     obj
+
 
 parse_responses = (data) ->
     #global variable
     response_split_indicies = get_separators_indicies(data.data[0], slice_marker)
-    console.log "Separator indicies : " + response_split_indicies
     #Skip first 3 
-    remove_redudant_columns(data, response_split_indicies.slice(1))
-
+    remove_redudant_columns(data, response_split_indicies.slice(2,3))
     # Get new split indicies.
     response_split_indicies = get_separators_indicies(data.data[0], slice_marker)
+    swap_columns(data, response_split_indicies.slice(2))
+    response_split_indicies = get_separators_indicies(data.data[0], slice_marker)
 
-    my_response = split_array(data.data[1], response_split_indicies)
 
-    self_eval = read_evaluation(column_name_map, my_response[0])
-    bully     = read_evaluation(bully_columns, my_response[1])
-    next_user = read_evaluation(member_columns, my_response[2])
+    results = {}
 
-    console.log(my_response[2])
-    console.log(next_user)
-    my_response
+    for resp_data, idx in data.data[1..]
+        responses = split_array(resp_data, response_split_indicies)
+
+        result = {}
+        result.self  = read_evaluation(column_name_map, responses[0])
+        result.self.statements = {}
+        for statement in Object.keys(column_name_map)[2..]
+            result.self.statements[statement] = result.self[statement]
+            delete result.self[statement]
+
+        result.bully = read_evaluation(bully_columns, responses[1])
+        my_name = check_my_name result.self.your_name
+
+        if not my_name?
+            console.log "Error: the name is invalid"
+
+        #console.log "My name is #{my_name}"
+
+        answer_id = 2
+        for member in members
+            break if member == ""
+            if member != my_name
+                #console.log "Read about #{member}, response #{responses[answer_id]}"
+                result[member] = read_evaluation(member_columns, responses[answer_id++])
+
+        results[my_name] = result
+
+    results
+
+
+parse_members = (text) ->
+    text = text.replace /,/g, ' '
+    array = text.split '\r\n'
 
 
 substitute_headers = (text) ->
-    for item in column_name_map
-        text = text.replace(new RegExp(column_name_map[item].text, 'g'), item)
+    for key, value of column_name_map
+        text = text.replace(new RegExp(value.text, 'g'), key)
     text
+
+
+calc_scores = (target_name, target, all_responses) ->
+    target.scores = {}
+
+    for statement, response of target.self.statements
+        if not target.scores[statement]?
+            target.scores[statement] = []
+
+        if response.score isnt 0
+            target.scores[statement].push {
+                score: response.score,
+                interaction_freq: "Self Evaluated"
+            }
+
+    #console.log all_responses["Dmitrii Emeliov"][target_name]
+    for member_name, responser of all_responses
+        continue if member_name == target_name
+        target_eval = responser[target_name]
+        continue if target_eval.interaction_freq == interaction_freq[Insufficient_inter_id]
+
+        for statement, response of target_eval
+            continue if typeof response isnt "object"
+
+            if not target.scores[statement]?
+                target.scores[statement] = []
+
+            if response.score isnt 0
+                target.scores[statement].push {
+                    score: response.score,
+                    interaction_freq: target_eval.interaction_freq
+                }
+
+class Data
+    constructor: (name, data) -> 
+        @type = "stackedColumn"
+        @toolTipContent = ""
+        @name = name #interaction_freq
+        @showInLegend = "true"
+        @dataPoints = data
+
+class ChartData
+    constructor: (results) ->
+        @title = { text: "" }
+        @axisY = {title: "Number of ..."}
+        @animationEnabled = true
+        data = []
+        #console.log results
+
+        @data = for inter_freq in interaction_freq
+            continue if inter_freq == interaction_freq[Insufficient_inter_id]
+
+            result = for k, v of results
+                ammount = v.length
+                # group score by interaction frequency
+                score_by_inter = v.filter (item) -> item.interaction_freq == inter_freq
+                { y: score_by_inter.length/ammount, label: k }
+
+            new Data inter_freq, result
+
+        @legend = {}
+
+
+# Returns data for chart for evaluation
+get_chart_data = (evaluation) ->
+    chartDatas = {}
+    for statement in Object.keys(column_name_map)[2..]
+        chartDatas[statement] = new ChartData evaluation.results[statement]
+    chartDatas
+
+calc_analitics = (resp) ->
+
+    for target_name, value of resp
+        # Go through members responses and collect all scores
+        # in respounse.scores array.
+        #respounse.scores = { question_1: [ {score: x, interaction_freq: y}, ...],
+        #                     question_2: [ {score: x, interaction_freq: y}, ...], ...
+        #                   }
+        calc_scores(target_name, value, resp)
+
+        #go through array value.scores 
+        results = {}
+        for statement, question_scores of value.scores
+            #collect scores by value, group by interaction_freq
+            res_by_statement = results[statement] = {}
+
+            for idx in [1..5]
+                res_by_statement[idx] = question_scores.filter (item, index) ->
+                    item.score == idx
+
+        value.results = results
 
 
 read_responses = (text) ->
     text = substitute_headers(text)
     data = Papa.parse(text)
-    parse_responses(data)
+    responses = parse_responses(data)
+    calc_analitics(responses)
+    #get_chart_data responses["Dmitrii Emeliov"]
+    responses
 
 
 parse_review = (members_data, review_data) ->
+    members = parse_members(members_data)
     read_responses(review_data)
 
 
 module.exports =
     parse: parse_review
+    get_chart_data: get_chart_data
+    interactions: get_interactions
+    statements: get_statements

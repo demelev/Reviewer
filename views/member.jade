@@ -1,0 +1,36 @@
+html
+    head
+        title = member
+        script(src="/canvasjs-1.8.0/canvasjs.min.js")
+        //script(type='text/javascript')!= "var statements = " + JSON.stringify(statements) + "; current_statement = 0;"
+
+        script(type='text/javascript')!= "window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', " + JSON.stringify(data[statements[0]]) + "); chart.render();}"
+    body
+        h3= "Reviewed: " + review.self.your_name
+
+        h3= "Self evaluation:"
+
+        table(id='selfEvaluation', class='self-eval-table')
+            tr
+                td Statement
+                td Score
+                td Comment
+            - each i in Object.keys(review.self.statements)
+                tr
+                    td= i
+                    td= review.self.statements[i].score
+                    td= review.self.statements[i].comment
+
+
+        h3 360 Evaluation
+        h3= statements[current_statement]
+        //form(action="/members/" + member_name): input(type="submit")
+        input(type="button", text="left")
+        input(type="button", text="right")
+
+div(id='chartContainer',
+    style="height: 300px; width: 100%")
+    p= "Hello"
+    
+
+
