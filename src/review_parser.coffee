@@ -105,6 +105,10 @@ get_interactions = ->
 get_statements = ->
     Object.keys(column_name_map)[2..]
 
+get_statements_text = ->
+    for statement in get_statements()
+        column_name_map[statement].text
+
 get_separators_indicies = (headers, separator) ->
     (idx for value, idx in headers when value == separator)
 
@@ -342,3 +346,4 @@ module.exports =
     get_chart_data: get_chart_data
     interactions: get_interactions
     statements: get_statements
+    statements_text: get_statements_text

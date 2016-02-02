@@ -54,7 +54,11 @@ app.post('/load_from', function(req, res) {
 });
 
 app.get('/members', function(req, res) {
-    res.sendFile(__dirname + '/members.html');
+
+    res.render("members", {
+        members: Object.keys(responses)
+    });
+    //res.sendFile(__dirname + '/members.html');
 });
 
 app.get('/members/*', function(req, res) {
@@ -63,10 +67,13 @@ app.get('/members/*', function(req, res) {
         var review = responses[req.params[0]];
         var data = review_parser.get_chart_data(review);
         //res.send(JSON.stringify(data['perform_tasks']));
+
+        console.log('statements text : ' + review_parser.statements_text());
         res.render("member", {
             review: review,
             data: data,
-            statements: review_parser.statements()
+            statements: review_parser.statements(),
+            statements_text: review_parser.statements_text()
         });
     }
     else

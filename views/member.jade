@@ -1,36 +1,106 @@
 html
     head
         title = member
-        script(src="/canvasjs-1.8.0/canvasjs.min.js")
-        //script(type='text/javascript')!= "var statements = " + JSON.stringify(statements) + "; current_statement = 0;"
+        link(rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css")
+        style.
+            body {
+                margin-left: 30px;
+                mergin-right: 30px;
+            }
+            table {
+                width: 80%;
+                margin: auto;
+            }
+            .backbutton {
+                height: 32px;
+                padding-top: 10px;
+            }
 
-        script(type='text/javascript')!= "window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', " + JSON.stringify(data[statements[0]]) + "); chart.render();}"
+            #statement {
+                width: 80%;
+                margin: auto;
+            }
+
+
+        script(src="/canvasjs-1.8.0/canvasjs.min.js")
+        script(type='text/javascript')!= "var statements_count = " + statements.length + "; var statements = " + JSON.stringify(statements) + "; current_statement = 0;"
+        script(type='text/javascript')!= "var statements_text = " + JSON.stringify(statements_text) + ";"
+
+        script(type='text/javascript')!= "var index = 0; window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', chartData[statements[0]]); chart.render();}"
+
+        script(type='text/javascript')!= "chartData = " + JSON.stringify(data) + "; statements = " + statements + ";"
+        script(type='text/javascript').
+
+            function prev()
+            {
+                index -= 1;
+                if (index == 0)
+                {
+                    var x = document.getElementById("left");
+                    x.disabled = true;
+                }
+
+                if (index == statements_count - 2)
+                {
+                    var x = document.getElementById("right");
+                    x.disabled = false;
+                }
+
+                var statement = document.getElementById("statement");
+                statement.innerHTML = statements_text[index];
+
+                var chart = new CanvasJS.Chart('chartContainer', chartData[statements[index]]);
+                chart.render();
+            }
+
+            function next()
+            {
+                index+=1;
+
+                if (index == 1)
+                {
+                    var x = document.getElementById("left");
+                    x.disabled = false;
+                }
+
+                if (index == statements_count - 1)
+                {
+                    var x = document.getElementById("right");
+                    x.disabled = true;
+                }
+
+                var statement = document.getElementById("statement");
+                statement.innerHTML = statements_text[index];
+
+                var chart = new CanvasJS.Chart('chartContainer', chartData[statements[index]]);
+                chart.render();
+            }
+
     body
+        a(href='/members'): img(src='/backbutton.jpg' class='backbutton')
         h3= "Reviewed: " + review.self.your_name
 
         h3= "Self evaluation:"
 
-        table(id='selfEvaluation', class='self-eval-table')
-            tr
-                td Statement
-                td Score
-                td Comment
-            - each i in Object.keys(review.self.statements)
+        table(id='selfEvaluation', class='pure-table pure-table-bordered')
+            thead
                 tr
-                    td= i
-                    td= review.self.statements[i].score
-                    td= review.self.statements[i].comment
+                    td Statement
+                    td Score
+                    td Comment
+            tbody
+                - each i in Object.keys(review.self.statements)
+                    tr
+                        td= i
+                        td= review.self.statements[i].score
+                        td= review.self.statements[i].comment
 
 
         h3 360 Evaluation
         h3= statements[current_statement]
-        //form(action="/members/" + member_name): input(type="submit")
-        input(type="button", text="left")
-        input(type="button", text="right")
+        button(type="button", id="left" onclick="prev();" disabled) prev
+        button(type="button", id="right" onclick='next();' ) next
 
-div(id='chartContainer',
-    style="height: 300px; width: 100%")
-    p= "Hello"
-    
-
-
+        p(id='statement' )= statements_text[0]
+        div(id='chartContainer',
+            style="height: 300px; width: 90%")
