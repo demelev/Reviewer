@@ -1,8 +1,21 @@
 html
     head
-        link(rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css")
+        style.
+            body {
+              max-width: 1024px;
+              margin: auto;
+              padding-left: 30px;
+            }
+            a { text-decoration: none; }
+            li { list-style: none; }
+            .backbutton {
+                height: 32px;
+                padding-top: 10px;
+            }
+
 
     body
+        a(href='/'): img(src='/backbutton.jpg' class='backbutton')
         ul(class="members-list")
-        -each name in members
-            li: a(href='/members/'+name)= name
+            -each name in members
+                li: a(href='/members/'+name)= name

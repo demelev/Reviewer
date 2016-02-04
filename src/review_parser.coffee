@@ -85,6 +85,12 @@ member_columns = {
     build_needed_systems : {
         text: "He/she is helping to build the needed systems, processes and structure for the company to be able to grow successfully",
         has_comment: true },
+    additional_areas: {
+        text: "What are additional areas he/she should work to improve?",
+        has_comment: false },
+    general_feedback: {
+        text: "General Feedback",
+        has_comment: false }
 }
 
 
@@ -192,6 +198,8 @@ parse_responses = (data) ->
     swap_columns(data, response_split_indicies.slice(2))
     response_split_indicies = get_separators_indicies(data.data[0], slice_marker)
 
+    headers = split_array(data.data[0], response_split_indicies)
+    console.log data.data[0]
 
     results = {}
 
@@ -209,7 +217,7 @@ parse_responses = (data) ->
         my_name = check_my_name result.self.your_name
 
         if not my_name?
-            console.log "Error: the name is invalid"
+            console.log "Error: the name is invalid -> #{result.self.your_name}"
 
         #console.log "My name is #{my_name}"
 
@@ -220,6 +228,7 @@ parse_responses = (data) ->
                 #console.log "Read about #{member}, response #{responses[answer_id]}"
                 result[member] = read_evaluation(member_columns, responses[answer_id++])
 
+        result.feedback = resp_data[resp_data.length-1];
         results[my_name] = result
 
     results
@@ -304,6 +313,13 @@ get_chart_data = (evaluation) ->
         chartDatas[statement] = new ChartData evaluation.results[statement]
     chartDatas
 
+average = (scores) ->
+    sum = 0
+    for score_item in scores
+        sum += score_item.score
+    sum/scores.length
+
+
 calc_analitics = (resp) ->
 
     for target_name, value of resp
@@ -316,8 +332,11 @@ calc_analitics = (resp) ->
 
         #go through array value.scores 
         results = {}
+        value.average = {}
+
         for statement, question_scores of value.scores
-            #collect scores by value, group by interaction_freq
+            value.average[statement] = average question_scores
+            #collect scores by value
             res_by_statement = results[statement] = {}
 
             for idx in [1..5]

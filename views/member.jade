@@ -4,32 +4,58 @@ html
         link(rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css")
         style.
             body {
-                margin-left: 30px;
-                mergin-right: 30px;
+                max-width: 1200px;
+                margin: auto;
+                padding-left: 30px;
             }
             table {
-                width: 80%;
+                width: 90%;
                 margin: auto;
             }
             .backbutton {
                 height: 32px;
                 padding-top: 10px;
             }
-
-            #statement {
-                width: 80%;
+            #left, #right {
+                margin-left: 30px;
+                margin-right: 30px;
+            }
+            #statement-table {
+                width: 90%;
                 margin: auto;
+            }
+            #head-table {
+                margin-top: 10px;
+            }
+
+            #statement, #average {
+                width: 90%;
+                padding-top: 10px;
+                margin: auto;
+                text-align: center;
             }
 
 
         script(src="/canvasjs-1.8.0/canvasjs.min.js")
         script(type='text/javascript')!= "var statements_count = " + statements.length + "; var statements = " + JSON.stringify(statements) + "; current_statement = 0;"
         script(type='text/javascript')!= "var statements_text = " + JSON.stringify(statements_text) + ";"
+        script(type='text/javascript')!= "var average_score = " + JSON.stringify(review.average) + ";"
 
         script(type='text/javascript')!= "var index = 0; window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', chartData[statements[0]]); chart.render();}"
 
         script(type='text/javascript')!= "chartData = " + JSON.stringify(data) + "; statements = " + statements + ";"
         script(type='text/javascript').
+
+            function update(index)
+            {
+                var statement = document.getElementById("statement");
+                statement.innerHTML = statements_text[index];
+
+                var average = document.getElementById("average");
+                average.innerHTML = "Average Score: " + average_score[statements[index]];
+                var chart = new CanvasJS.Chart('chartContainer', chartData[statements[index]]);
+                chart.render();
+            }
 
             function prev()
             {
@@ -45,12 +71,7 @@ html
                     var x = document.getElementById("right");
                     x.disabled = false;
                 }
-
-                var statement = document.getElementById("statement");
-                statement.innerHTML = statements_text[index];
-
-                var chart = new CanvasJS.Chart('chartContainer', chartData[statements[index]]);
-                chart.render();
+                update(index);
             }
 
             function next()
@@ -69,16 +90,20 @@ html
                     x.disabled = true;
                 }
 
-                var statement = document.getElementById("statement");
-                statement.innerHTML = statements_text[index];
-
-                var chart = new CanvasJS.Chart('chartContainer', chartData[statements[index]]);
-                chart.render();
+                update(index);
             }
 
     body
-        a(href='/members'): img(src='/backbutton.jpg' class='backbutton')
-        h3= "Reviewed: " + review.self.your_name
+        a(href='/members') Members list
+        table(id="head-table"): tr
+            td
+              -if (previous_member)
+                a(href='/members/'+previous_member): img(src='/button_left_.png' class='next')
+            td(style='text-align: center; width: 100%;')
+              h3= "Reviewed: " + review.self.your_name
+            td
+              -if (next_member)
+                a(href='/members/'+next_member): img(src='/button_right_.png' class='next')
 
         h3= "Self evaluation:"
 
@@ -97,10 +122,15 @@ html
 
 
         h3 360 Evaluation
-        h3= statements[current_statement]
-        button(type="button", id="left" onclick="prev();" disabled) prev
-        button(type="button", id="right" onclick='next();' ) next
 
-        p(id='statement' )= statements_text[0]
+        table(id="statement-table"): tr
+            td
+              input(type="image" src="/button_left_.png" id="left" onclick="prev();" disabled)
+            td(style="width: 100%;")
+              p(id='statement')= statements_text[0]
+              p(id='average')= "Average Score: " + review.average[statements[0]]
+            td
+              input(type="image" src="/button_right_.png" id="right" onclick='next();' )
+
         div(id='chartContainer',
-            style="height: 300px; width: 90%")
+            style="height: 300px; width: 90%; margin: auto;")

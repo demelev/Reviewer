@@ -1,0 +1,29 @@
+html
+ head
+  style.
+    li { list-style: none; } 
+    a { text-decoration: none; }
+    body {max-width: 1024px; margin: auto; padding-left: 30px;}
+
+ body
+   div(id="message")= notice 
+  ol
+ -each review in review_list
+     li: a(href="/review/"+review.date)= review.date
+
+ h3 Add new review
+
+ form(id="load_url" action="load_from" method="post")
+  table
+   tr
+    td
+     label Link to csv file with results:
+      td
+       input(type="text" name="url" id="url_field" value="" placeholder="Url to google sheets page")
+   tr
+    td
+     label Link to csv file with review order:
+    td
+     input(type="text" name="members_list_url" id="members_url_field" value="" placeholder="Url to google sheets with members names")
+   tr: td
+    input(type="submit" value="Load review" class="button-link")
