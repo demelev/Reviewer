@@ -62,14 +62,15 @@ app.get('/review/*', function(req, res) {
 app.get('/members', function(req, res) {
 
     res.render("members", {
-        members: Object.keys(responses)
+        members: responses.members
     });
     //res.sendFile(__dirname + '/members.html');
 });
 
 function members_resp(req, res, name, st_id)
 {
-    var members = Object.keys(responses);
+    //var members = Object.keys(responses);
+    var members = responses.members;
     var index = members.indexOf(name);
 
     if (index != -1)
@@ -77,9 +78,9 @@ function members_resp(req, res, name, st_id)
         var previous = members[index-1];
         var next = members[index+1];
 
-        var review = responses[name];
+        var review = responses.responses[name];
         var data = review_parser.get_chart_data(review);
-        var reviewers_by_user = review_parser.get_reviewers_for(responses, members[index]);
+        var reviewers_by_user = review_parser.get_reviewers_for(responses.responses, members[index]);
 
         res.render("member", {
             user_name: members[index], 
@@ -112,17 +113,11 @@ app.get('/chart', function(req, res) {
     res.sendFile(__dirname + '/chart.html');
 });
 
-/*
- *var members_data = fs.readFileSync(__dirname + '/public/members.csv', 'utf8');
- *var review_data = fs.readFileSync(__dirname + '/public/data.csv', 'utf8');
- *responses = review_parser.parse(members_data, review_data);
- */
 var dm = new data_manager.DataManager();
 dm.initialize();
 dm.load_reviews();
 
-//console.log(responses);
 
-http.listen(8888, function(){
-    console.log('Listening on *:8888');
+http.listen(7777, function(){
+    console.log('Listening on *:7777');
 });

@@ -1,9 +1,8 @@
 -each key in Object.keys(reviewers)
   
   table(style='margin-top: 30px;'): tr
-    td(style="transform: rotate(-90deg); text-align: center;")
-        = key
     td
+      h4= key
       table(class="pure-table pure-table-bordered", style='width:100%;')
         thead
           tr

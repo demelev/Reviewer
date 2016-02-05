@@ -103,25 +103,28 @@ html
               -if (previous_member)
                 a(href='/members/'+previous_member): img(src='/button_left_.png' class='next')
             td(style='text-align: center; width: 100%;')
-              h3= "Reviewed: " + review.self.your_name
+              h3= "Reviewed: " + user_name
             td
               -if (next_member)
                 a(href='/members/'+next_member): img(src='/button_right_.png' class='next')
 
         h3= "Self evaluation:"
 
-        table(id='selfEvaluation', class='pure-table pure-table-bordered')
-            thead
-                tr
-                    td(style="width: 45%;") Statement
-                    td(style="width: 20px;") Score
-                    td(style="width: 55%;") Comment
-            tbody
-                - each i in Object.keys(review.self.statements)
-                    tr
-                        td= statements_text[i].substring(0, 35) + "..."
-                        td(style="text-align:center;")= review.self.statements[i].score
-                        td= review.self.statements[i].comment
+        -if (!review.self)
+          span Is absent
+        -else
+          table(id='selfEvaluation', class='pure-table pure-table-bordered')
+              thead
+                  tr
+                      td(style="width: 45%;") Statement
+                      td(style="width: 20px;") Score
+                      td(style="width: 55%;") Comment
+              tbody
+                  - each i in Object.keys(review.self.statements)
+                      tr
+                          td= statements_text[i].substring(0, 35) + "..."
+                          td(style="text-align:center;")= review.self.statements[i].score
+                          td= review.self.statements[i].comment
 
 
         h3 360 Evaluation

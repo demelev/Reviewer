@@ -212,7 +212,6 @@ parse_responses = (data) ->
     response_split_indicies = get_separators_indicies(data.data[0], slice_marker)
 
     headers = split_array(data.data[0], response_split_indicies)
-    console.log data.data[0]
 
     results = {}
 
@@ -232,16 +231,13 @@ parse_responses = (data) ->
         if not my_name?
             console.log "Error: the name is invalid -> #{result.self.your_name}"
 
-        #console.log "My name is #{my_name}"
-
         answer_id = 2
         for member in members
             break if member == ""
             if member != my_name
-                #console.log "Read about #{member}, response #{responses[answer_id]}"
                 result[member] = read_evaluation(member_columns, responses[answer_id++])
 
-        result.feedback = resp_data[resp_data.length-1];
+        result.feedback = resp_data[resp_data.length-1]
         results[my_name] = result
 
     results
@@ -261,20 +257,21 @@ substitute_headers = (text) ->
 calc_scores = (target_name, target, all_responses) ->
     target.scores = {}
 
-    for statement, response of target.self.statements
-        if not target.scores[statement]?
-            target.scores[statement] = []
+    if target.self?
+        for statement, response of target.self.statements
+            if not target.scores[statement]?
+                target.scores[statement] = []
 
-        if response.score isnt 0
-            target.scores[statement].push {
-                score: response.score,
-                interaction_freq: "Self Evaluated"
-            }
+            if response.score isnt 0
+                target.scores[statement].push {
+                    score: response.score,
+                    interaction_freq: "Self Evaluated"
+                }
 
-    #console.log all_responses["Dmitrii Emeliov"][target_name]
     for member_name, responser of all_responses
         continue if member_name == target_name
         target_eval = responser[target_name]
+        continue if not target_eval?
         continue if target_eval.interaction_freq == interaction_freq[Insufficient_inter_id]
 
         for statement, response of target_eval
@@ -302,8 +299,6 @@ class ChartData
         @title = { text: "" }
         @axisY = {title: "Number of ..."}
         @animationEnabled = true
-        data = []
-        #console.log results
 
         @data = for inter_freq in interaction_freq
             continue if inter_freq == interaction_freq[Insufficient_inter_id]
@@ -333,15 +328,19 @@ average = (scores) ->
     sum/scores.length
 
 
-calc_analitics = (resp) ->
+calc_analitics = (review_data) ->
 
-    for target_name, value of resp
+    for target_name in review_data.members
+        value = review_data.responses[target_name]
         # Go through members responses and collect all scores
         # in respounse.scores array.
         #respounse.scores = { question_1: [ {score: x, interaction_freq: y}, ...],
         #                     question_2: [ {score: x, interaction_freq: y}, ...], ...
         #                   }
-        calc_scores(target_name, value, resp)
+        if not value?
+            review_data.responses[target_name] = value= {}
+
+        calc_scores(target_name, value, review_data.responses)
 
         #go through array value.scores 
         results = {}
@@ -362,15 +361,15 @@ calc_analitics = (resp) ->
 read_responses = (text) ->
     text = substitute_headers(text)
     data = Papa.parse(text)
-    responses = parse_responses(data)
-    calc_analitics(responses)
-    #get_chart_data responses["Dmitrii Emeliov"]
-    responses
+    parse_responses(data)
 
 
 parse_review = (members_data, review_data) ->
-    members = parse_members(members_data)
-    read_responses(review_data)
+    resp = {}
+    members = resp.members = parse_members(members_data)
+    resp.responses = read_responses(review_data)
+    calc_analitics(resp)
+    resp
 
 
 get_reviewers_for = (responses, user_name) ->
@@ -378,10 +377,13 @@ get_reviewers_for = (responses, user_name) ->
 
     for reviewer, data of responses
         continue if reviewer == user_name
-        inter = data[user_name].interaction_freq
+        eval_of_user = data[user_name]
+        continue if not eval_of_user?
+
+        inter = eval_of_user.interaction_freq
         if not reviewers[inter]?
             reviewers[inter] = []
-        reviewers[inter].push {name: reviewer, data: data[user_name]}
+        reviewers[inter].push {name: reviewer, data: eval_of_user}
     reviewers
 
 
