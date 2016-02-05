@@ -2,19 +2,10 @@ html
     head
         title = member
         link(rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css")
+        style
+          include style/main.css
+
         style.
-            thead>tr>td {
-               text-align: center;
-            }
-            body {
-                max-width: 1200px;
-                margin: auto;
-                padding: 30px;
-            }
-            table {
-                width: 90%;
-                margin: auto;
-            }
             .backbutton {
                 height: 32px;
                 padding-top: 10px;
@@ -141,4 +132,22 @@ html
         div(id='chartContainer',
             style="height: 300px; width: 90%; margin: auto;")
 
-       include review_table.jade
+        include review_table.jade
+
+
+        h3(style='text-align: center;') General feedback about the person
+
+          -if (general_feedback.length == 0)
+            p(style='text-align: center;') There is no feedback at all
+          -else
+            table(class="pure-table pure-table-bordered" style='margin-top: 10px;')
+              thead: tr
+                td Reviewer
+                td(style='width: 70%;') Feedback
+              tbody
+                -each fb in general_feedback
+                    tr
+                      td
+                        p= fb.name
+                      td
+                        p= fb.feedback

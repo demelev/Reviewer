@@ -1,0 +1,12 @@
+thead>tr>td {
+   text-align: center;
+}
+body {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+}
+table {
+    width: 90%;
+    margin: auto;
+}

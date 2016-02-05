@@ -35,7 +35,7 @@ app.post('/load_from', function(req, res) {
 
     if (!dm.review_exists(req.body.url))
     {
-        dm.add_new_review(req.body.url, req.body.members_list_url, (review) => {
+        dm.add_new_review(req.body.url, req.body.members_list_url,function (review) {
             res.redirect("/");
         });
     }
@@ -67,6 +67,14 @@ app.get('/members', function(req, res) {
     //res.sendFile(__dirname + '/members.html');
 });
 
+app.get('/review_feedback', function(req, res) {
+
+    res.render("review_feedback", {
+        reviewers: responses
+    });
+    //res.sendFile(__dirname + '/members.html');
+});
+
 function members_resp(req, res, name, st_id)
 {
     //var members = Object.keys(responses);
@@ -81,12 +89,14 @@ function members_resp(req, res, name, st_id)
         var review = responses.responses[name];
         var data = review_parser.get_chart_data(review);
         var reviewers_by_user = review_parser.get_reviewers_for(responses.responses, members[index]);
+        var g_feedback = review_parser.get_general_feedback(reviewers_by_user);
 
         res.render("member", {
-            user_name: members[index], 
+            user_name: members[index],
             reviewers: reviewers_by_user,
-            review: review,
-            data: data,
+            review: review, // User's evaluation
+            data: data,     // Chart data
+            general_feedback: g_feedback,
             statement_idx: st_id,
             statements: review_parser.statements(),
             statements_text: review_parser.statements_text(),

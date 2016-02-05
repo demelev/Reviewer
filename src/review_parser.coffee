@@ -380,12 +380,25 @@ get_reviewers_for = (responses, user_name) ->
         eval_of_user = data[user_name]
         continue if not eval_of_user?
 
+# Suppress showing of insufficient interactions.
         inter = eval_of_user.interaction_freq
+        continue if inter == interaction_freq[Insufficient_inter_id]
+
         if not reviewers[inter]?
             reviewers[inter] = []
         reviewers[inter].push {name: reviewer, data: eval_of_user}
     reviewers
 
+get_general_feedback = (reviewers_for_user) ->
+    feedback = []
+    for _, reviews_by_interaction of reviewers_for_user
+        for review in reviews_by_interaction
+            if review.data.general_feedback != ""
+                feedback.push {
+                    name: review.name,
+                    feedback: review.data.general_feedback
+                }
+    feedback
 
 module.exports =
     parse: parse_review
@@ -394,6 +407,5 @@ module.exports =
     statements: get_statements
     statements_text: get_statements_text
     short_interactions: short_interactions
-
-
+    get_general_feedback: get_general_feedback
     get_reviewers_for: get_reviewers_for
