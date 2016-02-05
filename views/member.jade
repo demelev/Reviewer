@@ -3,10 +3,13 @@ html
         title = member
         link(rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css")
         style.
+            thead>tr>td {
+               text-align: center;
+            }
             body {
                 max-width: 1200px;
                 margin: auto;
-                padding-left: 30px;
+                padding: 30px;
             }
             table {
                 width: 90%;
@@ -41,7 +44,7 @@ html
         script(type='text/javascript')!= "var statements_text = " + JSON.stringify(statements_text) + ";"
         script(type='text/javascript')!= "var average_score = " + JSON.stringify(review.average) + ";"
 
-        script(type='text/javascript')!= "var index = 0; window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', chartData[statements[0]]); chart.render();}"
+        script(type='text/javascript')!= "var index = "+statement_idx+"; window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', chartData[statements[0]]); chart.render();}"
 
         script(type='text/javascript')!= "chartData = " + JSON.stringify(data) + "; statements = " + statements + ";"
         script(type='text/javascript').
@@ -49,7 +52,7 @@ html
             function update(index)
             {
                 var statement = document.getElementById("statement");
-                statement.innerHTML = statements_text[index];
+                statement.innerHTML = statements_text[statements[index]];
 
                 var average = document.getElementById("average");
                 average.innerHTML = "Average Score: " + average_score[statements[index]];
@@ -110,14 +113,14 @@ html
         table(id='selfEvaluation', class='pure-table pure-table-bordered')
             thead
                 tr
-                    td Statement
-                    td Score
-                    td Comment
+                    td(style="width: 45%;") Statement
+                    td(style="width: 20px;") Score
+                    td(style="width: 55%;") Comment
             tbody
                 - each i in Object.keys(review.self.statements)
                     tr
-                        td= i
-                        td= review.self.statements[i].score
+                        td= statements_text[i].substring(0, 35) + "..."
+                        td(style="text-align:center;")= review.self.statements[i].score
                         td= review.self.statements[i].comment
 
 
@@ -125,12 +128,14 @@ html
 
         table(id="statement-table"): tr
             td
-              input(type="image" src="/button_left_.png" id="left" onclick="prev();" disabled)
+              a(href="/members/"+user_name+"/"+(parseInt(statement_idx)-1)): img(src="/button_left_.png")
             td(style="width: 100%;")
-              p(id='statement')= statements_text[0]
-              p(id='average')= "Average Score: " + review.average[statements[0]]
+              p(id='statement')= statements_text[statements[statement_idx]]
+              p(id='average')= "Average Score: " + review.average[statements[statement_idx]].toFixed(2)
             td
-              input(type="image" src="/button_right_.png" id="right" onclick='next();' )
+              a(href="/members/"+user_name+"/"+(parseInt(statement_idx) + 1)): img(src="/button_right_.png")
 
         div(id='chartContainer',
             style="height: 300px; width: 90%; margin: auto;")
+
+       include review_table.jade

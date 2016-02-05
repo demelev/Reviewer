@@ -67,27 +67,29 @@ app.get('/members', function(req, res) {
     //res.sendFile(__dirname + '/members.html');
 });
 
-app.get('/members/*', function(req, res) {
+function members_resp(req, res, name, st_id)
+{
     var members = Object.keys(responses);
-    var index = members.indexOf(req.params[0]);
+    var index = members.indexOf(name);
 
     if (index != -1)
     {
         var previous = members[index-1];
         var next = members[index+1];
-        console.log("prev: " + previous);
-        console.log("next: " + next);
 
-        var review = responses[req.params[0]];
+        var review = responses[name];
         var data = review_parser.get_chart_data(review);
-        //res.send(JSON.stringify(data['perform_tasks']));
+        var reviewers_by_user = review_parser.get_reviewers_for(responses, members[index]);
 
-        console.log('statements text : ' + review_parser.statements_text());
         res.render("member", {
+            user_name: members[index], 
+            reviewers: reviewers_by_user,
             review: review,
             data: data,
+            statement_idx: st_id,
             statements: review_parser.statements(),
             statements_text: review_parser.statements_text(),
+            short_interactions: review_parser.short_interactions(),
             previous_member: previous,
             next_member: next
         });
@@ -96,8 +98,14 @@ app.get('/members/*', function(req, res) {
     {
         res.send("There is not such member");
     }
-    //var chart = new CanvasJS.Chart("chartContainer", get_chart_data());
-    //chart.render();
+}
+
+app.get('/members/:name', function(req, res) {
+    members_resp(req, res, req.params.name, 0);
+});
+
+app.get('/members/:name/:id', function(req, res) {
+    members_resp(req, res, req.params.name, req.params.id);
 });
 
 app.get('/chart', function(req, res) {

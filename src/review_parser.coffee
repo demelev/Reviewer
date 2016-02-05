@@ -93,7 +93,6 @@ member_columns = {
         has_comment: false }
 }
 
-
 interaction_freq = [
     "Daily",
     "Worked alongside each other on big project(s) or had regular interaction",
@@ -103,17 +102,31 @@ interaction_freq = [
     "Self Evaluated"
 ]
 
+short_interaction_freq = {
+   "Daily": "Daily",
+   "Worked alongside each other on big project(s) or had regular interaction": "Regular",
+   "Occasionally": "Occasionally",
+   "On a few occasions and can give some feedback": "On a few occasions",
+   "Insufficient interactions / will not review": "Insufficient"
+}
+
 Insufficient_inter_id = 4 # workaround
 get_interactions = ->
     interaction_freq.filter (item) ->
         item != interaction_freq[Insufficient_inter_id]
 
+short_interactions = ->
+    short_interaction_freq
+
 get_statements = ->
     Object.keys(column_name_map)[2..]
 
 get_statements_text = ->
+    statements = {}
     for statement in get_statements()
-        column_name_map[statement].text
+        statements[statement] = column_name_map[statement].text
+    statements
+
 
 get_separators_indicies = (headers, separator) ->
     (idx for value, idx in headers when value == separator)
@@ -360,9 +373,25 @@ parse_review = (members_data, review_data) ->
     read_responses(review_data)
 
 
+get_reviewers_for = (responses, user_name) ->
+    reviewers = {}
+
+    for reviewer, data of responses
+        continue if reviewer == user_name
+        inter = data[user_name].interaction_freq
+        if not reviewers[inter]?
+            reviewers[inter] = []
+        reviewers[inter].push {name: reviewer, data: data[user_name]}
+    reviewers
+
+
 module.exports =
     parse: parse_review
     get_chart_data: get_chart_data
     interactions: get_interactions
     statements: get_statements
     statements_text: get_statements_text
+    short_interactions: short_interactions
+
+
+    get_reviewers_for: get_reviewers_for

@@ -1,0 +1,19 @@
+-each key in Object.keys(reviewers)
+  
+  table(style='margin-top: 30px;'): tr
+    td(style="transform: rotate(-90deg); text-align: center;")
+        = key
+    td
+      table(class="pure-table pure-table-bordered", style='width:100%;')
+        thead
+          tr
+            td(style="width: 45%;")  Reviewer
+            td(style="width: 20px;") Score
+            td(style="width: 55%;")  Comment
+        tbody
+          -each i in reviewers[key]
+            tr
+             td= i.name
+             -if (i.data[statements[statement_idx]])
+               td= i.data[statements[statement_idx]].score
+               td= i.data[statements[statement_idx]].comment
