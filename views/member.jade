@@ -122,12 +122,14 @@ html
 
         table(id="statement-table"): tr
             td
-              a(href="/members/"+user_name+"/"+(parseInt(statement_idx)-1)): img(src="/button_left_.png")
+              -if (parseInt(statement_idx) > 0)
+                a(href="/members/"+user_name+"/"+(parseInt(statement_idx)-1)): img(src="/button_left_.png")
             td(style="width: 100%;")
               p(id='statement')= statements_text[statements[statement_idx]]
               p(id='average')= "Average Score: " + review.average[statements[statement_idx]].toFixed(2)
             td
-              a(href="/members/"+user_name+"/"+(parseInt(statement_idx) + 1)): img(src="/button_right_.png")
+              -if (parseInt(statement_idx)+1 < statements.length)
+                a(href="/members/"+user_name+"/"+(parseInt(statement_idx) + 1)): img(src="/button_right_.png")
 
         div(id='chartContainer',
             style="height: 300px; width: 90%; margin: auto;")
