@@ -91,7 +91,7 @@ function members_resp(req, res, name, st_id)
         var reviewers_by_user = review_parser.get_reviewers_for(responses.responses, members[index]);
         var g_feedback = review_parser.get_general_feedback(reviewers_by_user);
 
-        res.render("member", {
+        res.render(st_id > 0 ? "review_table" : "member", {
             user_name: members[index],
             reviewers: reviewers_by_user,
             review: review, // User's evaluation

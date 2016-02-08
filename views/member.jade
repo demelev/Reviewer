@@ -31,14 +31,26 @@ html
 
 
         script(src="/canvasjs-1.8.0/canvasjs.min.js")
+        script(src="/jquery-2.2.0.min.js")
         script(type='text/javascript')!= "var statements_count = " + statements.length + "; var statements = " + JSON.stringify(statements) + "; current_statement = 0;"
         script(type='text/javascript')!= "var statements_text = " + JSON.stringify(statements_text) + ";"
         script(type='text/javascript')!= "var average_score = " + JSON.stringify(review.average) + ";"
+        script(type='text/javascript')!= "var user_name = '" + user_name + "';"
 
-        script(type='text/javascript')!= "var index = "+statement_idx+"; window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', chartData[statements[0]]); chart.render();}"
+        script(type='text/javascript')!= "var statement_idx = 0; var index = "+statement_idx+"; window.onload = function () {var chart = new CanvasJS.Chart('chartContainer', chartData[statements[0]]); chart.render();}"
 
         script(type='text/javascript')!= "chartData = " + JSON.stringify(data) + "; statements = " + statements + ";"
         script(type='text/javascript').
+
+            function update_table(index)
+            {
+                $.ajax({url: "/members/" + user_name + "/" + index}).done(
+                    function (msg) {
+                        var tables = document.getElementById("review_tables");
+                        tables.innerHTML = msg;
+                    }
+                );
+            }
 
             function update(index)
             {
@@ -47,13 +59,18 @@ html
 
                 var average = document.getElementById("average");
                 average.innerHTML = "Average Score: " + average_score[statements[index]];
+
                 var chart = new CanvasJS.Chart('chartContainer', chartData[statements[index]]);
                 chart.render();
+
+                update_table(index);
             }
 
             function prev()
             {
                 index -= 1;
+                statement_idx -= 1;
+
                 if (index == 0)
                 {
                     var x = document.getElementById("left");
@@ -70,7 +87,11 @@ html
 
             function next()
             {
+                if (index + 1 == statements.length)
+                    return;
+
                 index+=1;
+                statement_idx += 1;
 
                 if (index == 1)
                 {
@@ -122,19 +143,18 @@ html
 
         table(id="statement-table"): tr
             td
-              -if (parseInt(statement_idx) > 0)
-                a(href="/members/"+user_name+"/"+(parseInt(statement_idx)-1)): img(src="/button_left_.png")
+                input(type="image" id="left" src="/button_left_.png" onclick="prev();")
             td(style="width: 100%;")
               p(id='statement')= statements_text[statements[statement_idx]]
               p(id='average')= "Average Score: " + review.average[statements[statement_idx]].toFixed(2)
             td
-              -if (parseInt(statement_idx)+1 < statements.length)
-                a(href="/members/"+user_name+"/"+(parseInt(statement_idx) + 1)): img(src="/button_right_.png")
+                input(type="image" id="right" src="/button_right_.png" onclick="next();")
 
         div(id='chartContainer',
             style="height: 300px; width: 90%; margin: auto;")
 
-        include review_table.jade
+        #review_tables
+            include review_table.jade
 
 
         h3(style='text-align: center;') General feedback about the person
